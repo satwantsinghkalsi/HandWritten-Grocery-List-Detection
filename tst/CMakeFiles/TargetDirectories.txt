@@ -1,0 +1,2 @@
+/mnt/c/Users/satwa/Documents/CS6375ML/segment/CMakeFiles/Segmentation.dir
+/mnt/c/Users/satwa/Documents/CS6375ML/segment/CMakeFiles/watershed.dir

@@ -1,0 +1,87 @@
+
+#include <iostream>
+#include <fstream>
+#include <cv.h>
+#include <cxcore.h>
+#include <highgui.h>
+
+ 
+int _tmain(int argc, _TCHAR* argv[])
+{
+	IplImage *img = cvLoadImage("bill.jpg");
+	CvSize imgSize =cvGetSize(img);
+ 
+	//Gray scale
+	IplImage *gray=cvCreateImage(cvSize(img->width,img->height),8,1);
+	cvCvtColor(img,gray,CV_RGB2GRAY);
+ 
+	//binary
+	IplImage *binary=cvCreateImage(cvSize(img->width,img->height),8,1);
+	cvThreshold(gray, binary, 5, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+ 
+	double pixel;
+	int count=0;
+	int height=binary->height;
+	int *linecount = new int[height];
+	int width=binary->width;
+	int *wordcount = new int[width];
+ 
+	int *HorizontalHistogram = new int[height];
+	for(int i = 0; i < height; i++)
+    {     HorizontalHistogram[i] = 0;
+    }
+ 
+	//Line segmentation
+	printf("Horizontal Bin Values \n");
+	for(int j=0;j<(binary->height);j++){
+		count=0;
+		for(int i=0;i<(binary->width);i++){
+			pixel=cvGetReal2D(binary,j,i);
+			if( pixel==0 ){
+				HorizontalHistogram[j]++;
+				count++;	
+			}	
+		}
+		printf("%d \n", count);
+	}
+	
+	int Hhist_w = height; int Hhist_h = 300;
+	int Vhist_w = height; int Vhist_h = 300;
+	float range[] = {0,255};
+	float *ranges[] = {range};
+	int Hhist_size = {binary->height};
+	int Vhist_size = {binary->width};
+	float min_value,max_value = 0;
+	IplImage *histImage1 = cvCreateImage(cvSize(height,300),8,1);
+	IplImage *histImage2 = cvCreateImage(cvSize(width,300),8,1);
+	cvSet(histImage1,cvScalarAll(255),0);
+	cvSet(histImage2,cvScalarAll(255),0);
+	CvHistogram *hist = cvCreateHist(1,&Hhist_size,CV_HIST_ARRAY,ranges,1);
+	int bin_w1 = cvRound((double)histImage1->width/Hhist_size);
+	int bin_w2 = cvRound((double)histImage2->width/Vhist_size);
+ 
+	for(int i = 0; i < height; i++)
+    {
+		cvLine(histImage1, cvPoint(bin_w1*(i), Hhist_h),
+                              cvPoint(bin_w1*(i), Hhist_h - HorizontalHistogram[i]),
+             cvScalar(0,0,0), 1, 8, 0);
+    }
+ 
+	cvNamedWindow("Image:");
+	cvShowImage("Image:", img);
+	cvNamedWindow("Binary:");
+	cvShowImage("Binary:", binary);
+	cvNamedWindow("HorizontalHistogram:");
+	cvShowImage("HorizontalHistogram:", histImage1);
+ 
+	cvWaitKey(0);
+ 
+	cvDestroyWindow("Image:");
+	cvReleaseImage(&img);
+	cvDestroyWindow("Binary:");
+	cvReleaseImage(&binary);
+	cvDestroyWindow("HorizontalHistogram:");
+	cvReleaseImage(&histImage1);
+ 
+	return 0;
+}
